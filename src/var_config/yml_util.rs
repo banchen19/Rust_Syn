@@ -2,7 +2,7 @@ use rand::Rng;
 use std::fs::File;
 use std::io::{Read, Write};
 
-use crate::var_config::Config_A::Config;
+use crate::var_config::def_Config::Config;
 
 use md5;
 
