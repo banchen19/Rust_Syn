@@ -10,30 +10,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  build-and-package:
+
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v3
+    - name: Install Cross
+      run: cargo install cross
     - name: Build for Linux
-      run: cargo build --release --verbose
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Build for Windows
-      run: cargo build --release --verbose
-
-  package-linux:
-    runs-on: ubuntu-latest
-    needs: build-linux
-    steps:
+      run: cross build --target x86_64-unknown-linux-gnu --release
     - name: Package for Linux
-      run: cargo package
-
-  package-windows:
-    runs-on: windows-latest
-    needs: build-windows
-    steps:
+      run: cross package --target x86_64-unknown-linux-gnu --release
+    - name: Build for Windows
+      run: cross build --target x86_64-pc-windows-gnu --release
     - name: Package for Windows
-      run: cargo package
+      run: cross package --target x86_64-pc-windows-gnu --release
