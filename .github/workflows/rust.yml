@@ -18,11 +18,35 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install Cross
       run: cargo install cross
+    - name: Install OpenSSL development package (Linux)
+      run: sudo apt-get install -y libssl-dev  # 在 Linux 上安装 OpenSSL 开发包
     - name: Build for Linux
       run: cross build --target x86_64-unknown-linux-gnu --release
     - name: Package for Linux
       run: cross package --target x86_64-unknown-linux-gnu --release
+
+  build-and-package-windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Cross
+      run: cargo install cross
     - name: Build for Windows
       run: cross build --target x86_64-pc-windows-gnu --release
     - name: Package for Windows
       run: cross package --target x86_64-pc-windows-gnu --release
+
+  build-and-package-macos:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Cross
+      run: cargo install cross
+    - name: Build for macOS
+      run: cross build --target x86_64-apple-darwin --release
+    - name: Package for macOS
+      run: cross package --target x86_64-apple-darwin --release
