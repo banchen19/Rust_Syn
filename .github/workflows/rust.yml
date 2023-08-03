@@ -21,9 +21,9 @@ jobs:
     - name: Install OpenSSL development package (Linux)
       run: sudo apt-get install -y libssl-dev  # 在 Linux 上安装 OpenSSL 开发包
     - name: Build for Linux
-      run: cross build --target x86_64-unknown-linux-gnu --release
+      run: cross build --target x86_64-unknown-linux-gnu --release --features vendored
     - name: Package for Linux
-      run: cross package --target x86_64-unknown-linux-gnu --release
+      run: cross package --target x86_64-unknown-linux-gnu --release --features vendored
 
   build-and-package-windows:
 
@@ -34,9 +34,9 @@ jobs:
     - name: Install Cross
       run: cargo install cross
     - name: Build for Windows
-      run: cross build --target x86_64-pc-windows-gnu --release
+      run: cross build --target x86_64-pc-windows-gnu --release --features vendored
     - name: Package for Windows
-      run: cross package --target x86_64-pc-windows-gnu --release
+      run: cross package --target x86_64-pc-windows-gnu --release --features vendored
 
   build-and-package-macos:
 
@@ -47,6 +47,6 @@ jobs:
     - name: Install Cross
       run: cargo install cross
     - name: Build for macOS
-      run: cross build --target x86_64-apple-darwin --release
+      run: cross build --target x86_64-apple-darwin --release --features vendored
     - name: Package for macOS
-      run: cross package --target x86_64-apple-darwin --release
+      run: cross package --target x86_64-apple-darwin --release --features vendored
