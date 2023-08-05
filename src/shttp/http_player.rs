@@ -1,3 +1,5 @@
+use std::ptr::null;
+
 use rocket::{catch, get, http::Status, post, Request, Responder};
 // 自定义状态码并返回数据
 use crate::{shttp::httpGetResponder_tools::HttpGetResponder, sql::Sql_Util::*, CONFIG_VAR}; // 添加引用
@@ -153,7 +155,7 @@ pub fn getinformation_all(
 
 // 登录以获取个人信息
 #[get("/?<name>&<pw>&<moeny_name>")]
-pub fn getlogin(
+pub fn getpllogin(
     name: Option<String>,
     pw: Option<String>,
     moeny_name: Option<String>,
@@ -191,3 +193,34 @@ pub fn getlogin(
     }
 }
 
+// 验证密码
+#[get("/?<name>&<pw>")]
+pub fn login(
+    name: Option<String>,
+    pw: Option<String>,
+) -> HttpGetResponder {
+    let name = name.unwrap_or_default();
+    let pw = pw.unwrap_or_default();
+    println!("name: {}", name);
+    println!("pw: {}", pw);
+
+    let config = CONFIG_VAR
+        .lock()
+        .unwrap()
+        .as_ref()
+        .expect("CONFIG_VAR not initialized")
+        .clone();
+
+    match getplayer_information(config.clone(), name) {
+        Ok(player) => {
+            println!("{}",player.player.pw);
+            println!("{}",pw);
+            if player.player.pw == pw {
+                null_200_http_get_responder()
+            } else {
+                null_403_http_get_responder()
+            }
+        }
+        _ => null_403_http_get_responder(),
+    }
+}

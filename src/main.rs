@@ -33,12 +33,7 @@ use crate::shttp::http_player::*;
 
 // ws服务端
 mod sws;
-use crate::shttp::http_player_config::Player;
-use crate::sql::Sql_Util::add_player;
-use crate::sws::ws_key::decrypt;
-use crate::sws::ws_key::encrypt;
 use crate::sws::ws_server::ServerHandler;
-use crate::var_config::def_Config::DefPlayer;
 
 use yansi::Paint; //转换u数组为字符串
 
@@ -161,9 +156,10 @@ async fn start_http_server(config: Config) -> tokio::task::JoinHandle<()> {
             .mount("/deleteplayer", routes![deleteplayer])
             .mount("/deleteplayer_me", routes![deleteplayer_me])
             .mount("/getinformation_all", routes![getinformation_all])
-            .mount("/getlogin", routes![getlogin])
+            .mount("/getpllogin", routes![getpllogin])
             .mount("/delmoney", routes![delmoney])
             .mount("/getplmoney", routes![getplmoney])
+            .mount("/login", routes![login])
             .register("/", catchers![not_found])
             // .mount("/", routes![index])
             .launch()

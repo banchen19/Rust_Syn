@@ -41,7 +41,7 @@ pub async fn create_table(config: Config) {
 pub fn add_player(config: Config, player: DefPlayer) {
     if config.sqlmode == "mysql" {
     } else {
-        insert_player_sqlite3(config,player);
+        insert_player_sqlite3(config, player);
     }
 }
 
@@ -56,7 +56,7 @@ pub fn getplayer_pw(config: Config, name: String) -> Result<String, DatabaseErro
             }
             Err(_) => {
                 println!("{}", Paint::red("密钥获取失败"));
-            },
+            }
         }
     }
     Ok(pw)
@@ -67,19 +67,26 @@ pub fn getplayer_information(config: Config, name: String) -> Result<Player, Dat
     if config.sqlmode == "mysql" {
         unimplemented!()
     } else {
-        match getplayer_information_name_sqlite3(&name,&config.def_money_name) {
-            Ok(player) => Ok(player),
+        match getplayer_information_name_sqlite3(&name, &config.def_money_name) {
+            Ok(player) => {
+                println!("获取到数据：{:?}", player);
+                Ok(player)
+            }
             Err(err) => Err(DatabaseError::SQLite(err)), // 封装为DatabaseError::SQLite
         }
     }
 }
 
 // 获取玩家数据-指定经济体
-pub fn getplayer_information_money(config: Config, name: String,def_money_name:String) -> Result<Player, DatabaseError> {
+pub fn getplayer_information_money(
+    config: Config,
+    name: String,
+    def_money_name: String,
+) -> Result<Player, DatabaseError> {
     if config.sqlmode == "mysql" {
         unimplemented!()
     } else {
-        match getplayer_information_name_sqlite3(&name,&def_money_name) {
+        match getplayer_information_name_sqlite3(&name, &def_money_name) {
             Ok(player) => Ok(player),
             Err(err) => Err(DatabaseError::SQLite(err)), // 封装为DatabaseError::SQLite
         }
@@ -99,7 +106,10 @@ pub fn deleteplayer_me_sql(config: Config, name: String) -> Result<(), DatabaseE
 }
 
 // 获取所有玩家数据
-pub fn get_player_all(config: Config,economy_name:String) -> Result<Option<Players>, DatabaseError> {
+pub fn get_player_all(
+    config: Config,
+    economy_name: String,
+) -> Result<Option<Players>, DatabaseError> {
     if config.sqlmode == "mysql" {
         unimplemented!()
     } else {
@@ -127,7 +137,7 @@ pub fn deletemoney(config: Config, moneysName: String, key: String) -> Result<()
     if config.sqlmode == "mysql" {
         unimplemented!()
     } else {
-        match delete_money_name_sqlite3(moneysName,key) {
+        match delete_money_name_sqlite3(moneysName, key) {
             Ok(()) => Ok(()),
             Err(err) => Err(DatabaseError::SQLite(err)),
         }

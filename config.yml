@@ -1,7 +1,7 @@
 ---
 ws_port: 20102
 ws_keymode: AES-128
-ws_key: ""
+server_name: kshdskahdksajdhah
 http_port: 20103
 sqlmode: sqlite3
 def_money_name: 贡献点

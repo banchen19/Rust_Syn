@@ -190,16 +190,14 @@
 ---
 ## WS端接口说明
 ### Chat通信
-#### 消息发送格式
+#### 客户端消息发送格式要求
 ```json
 {
-    "key":"密钥",
-    "typestr":"chat",
+    "type":"chat",
     "data":"{
-        "player_name":"玩家名",
-        "perm_level":"null",
-        "serverver_name":"发送这个消息的客户端",
-        "data":"要广播到所有子服的消息"
+        "name":"玩家名",
+        "sender":"来源于谁？",
+        "msg":"要广播到所有子服的消息"
     }"
 }
 ```
@@ -212,8 +210,7 @@
     "data":"chat_msg",
     "serverver_name":"玩家进行游戏服务服务端名"
   },
-  "typestr":"chat",
-  "serverver_name":"玩家发送消息的服务端民"
+  "type":"chat",
 }
 ```
 ---

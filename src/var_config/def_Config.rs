@@ -12,14 +12,14 @@ use std::{
 // 有色日志
 use colored::Colorize;
 
-use crate::var_config::yml_util;
+use crate::{var_config::yml_util, sws::ws_key::generate_md5_key};
 
 // 启动配置文件结构体
 #[derive(Debug, Serialize, Deserialize,Clone)]
 pub struct Config{
     pub(crate) ws_port:u32,
     pub(crate) ws_keymode:String,
-    pub(crate) ws_key:String,
+    pub(crate) server_name:String,
     pub(crate) http_port:u32,
     pub(crate) sqlmode:String,
     pub(crate) def_money_name:String,
@@ -46,13 +46,16 @@ pub struct DefPlayer {
 
 use mysql::Error as MySQLError;
 use rusqlite::Error as SQLiteError;
-pub enum DatabaseError {
+
+use super::yml_util::generate_random_key;
+pub enum DatabaseError{
     MySQL(MySQLError),
     SQLite(SQLiteError),
 }
 
 // 返回配置
 pub fn inti_config() -> Result<Config, Box<dyn Error>> {
+    let key=generate_random_key(16).to_owned();
     let file_path = "config.yml";
     let config = crate::Config {
         ws_port:20102,
@@ -66,7 +69,7 @@ pub fn inti_config() -> Result<Config, Box<dyn Error>> {
         delplme:false,
         getplall:4,
         ws_keymode: "AES-128".to_owned(),
-        ws_key: "".to_owned(),
+        server_name:key,
     };
     match fs::metadata(&file_path) {
         Err(_) => {
