@@ -42,6 +42,8 @@ pub struct DefPlayer {
     pub online: u8,
     pub ip: String,
     pub time:String,
+    pub money: i32,
+
 }
 
 use mysql::Error as MySQLError;

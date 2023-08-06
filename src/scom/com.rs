@@ -45,6 +45,7 @@ pub fn com_mg(com_str: String) -> Result<(), String> {
                             online: 0,
                             ip: "null".to_owned(),
                             time: formatted_time,
+                            money: 0,
                         };
                         add_player(config, player);
                         println!(
@@ -74,7 +75,7 @@ pub fn com_mg(com_str: String) -> Result<(), String> {
                         .clone();
                     match getplayer_information(config.clone(), player_name.to_owned()) {
                         Ok(_def_player) => {
-                            match deleteplayer_me_sql(config, _def_player.player.name) {
+                            match deleteplayer_me_sql(config, _def_player.name) {
                                 Ok(_) => Ok(()),
                                 Err(_) => Err(String::from("小概率事件触发，几乎他妈的不可能触发")),
                             }
@@ -99,10 +100,16 @@ pub fn com_mg(com_str: String) -> Result<(), String> {
                             .clone();
                         match getplayer_information(config.clone(), player_name.to_owned()) {
                             Ok(mut _def_player) => {
-                                _def_player.player.level = permission_level;
-                                match update_player_level(config.clone(), player_name.clone().to_owned(),permission_level) {
+                                _def_player.level = permission_level;
+                                match update_player_level(
+                                    config.clone(),
+                                    player_name.clone().to_owned(),
+                                    permission_level,
+                                ) {
                                     Ok(_) => Ok(()),
-                                    Err(_) => Err(String::from("修改失败：小概率事件触发，几乎他妈的不可能触发")),
+                                    Err(_) => Err(String::from(
+                                        "修改失败：小概率事件触发，几乎他妈的不可能触发",
+                                    )),
                                 }
                             }
                             _ => Err(String::from("玩家不存在")),
@@ -116,7 +123,7 @@ pub fn com_mg(com_str: String) -> Result<(), String> {
                     ));
                 }
             }
-            
+
             _ => {
                 return Err(String::from("无效的命令，请输入有效的命令。"));
             }

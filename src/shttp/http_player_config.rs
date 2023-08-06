@@ -8,19 +8,10 @@ pub struct AddPlayer
 {
     pub(crate) name:String,
     pub(crate) pw:String,
-    pub(crate) player:DefPlayer,
+    pub(crate) player:serde_json::Value,
 }
-
-
-// 玩家默认数据
-#[derive(Debug, Serialize, Deserialize,Clone)]
-pub struct Player {
-    pub player: DefPlayer,
-    pub money: i32,
-}
-
 // 所有玩家
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Players {
-    pub players: Vec<Player>,
+    pub players: Vec<DefPlayer>,
 }

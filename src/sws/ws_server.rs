@@ -4,13 +4,12 @@ use std::{
 };
 
 use rocket::yansi::Paint;
-use serde_json;
-use ws::{Handler, Handshake, Message, Request, Result};
+use ws::{Handler, Handshake, Message, Result};
 
 use crate::sws::{
-    msg_tools::{message_amin, MessageResult},
-    ws_key::{decrypt, encrypt, generate_md5_key},
-};
+        msg_tools::{message_amin, MessageResult},
+        ws_key::{decrypt, encrypt},
+    };
 
 pub(crate) struct ServerHandler {
     pub(crate) out: ws::Sender,
@@ -25,6 +24,19 @@ impl Handler for ServerHandler {
             Paint::yellow("通信端接受新连接,来自"),
             Paint::green(client_addr.unwrap())
         );
+        // Check if the client requested a supported subprotocol
+        if let Some(requested_protocol) = shake.request.header("Sec-WebSocket-Protocol") {
+            let decrypted_string = String::from_utf8(requested_protocol.to_vec()).unwrap();
+
+            if decrypted_string != "banchen21" {
+                println!("协议中的指定验证不存在");
+                let _ = self.out.close(ws::CloseCode::Other(2));
+            }
+        } else {
+            println!("不存在协议");
+            let _ = self.out.close(ws::CloseCode::Other(2));
+        }
+
         let mut connections = self.connections.lock().unwrap();
         let current_time = SystemTime::now();
         connections.push((self.out.clone(), current_time));
@@ -39,7 +51,10 @@ impl Handler for ServerHandler {
 
     fn on_message(&mut self, msg: Message) -> Result<()> {
         match msg {
-            Message::Text(text) => msgdecrypt(text.as_bytes().to_vec(), self),
+            Message::Text(text) => {
+                println!("{}", text);
+                msgdecrypt(text.as_bytes().to_vec(), self)
+            }
             Message::Binary(bytes) => msgdecrypt(bytes, self),
         }
 
@@ -87,12 +102,14 @@ fn msgdecrypt(msg_string: Vec<u8>, _server_handler: &mut ServerHandler) {
     match decrypt(&msg_string) {
         Ok(pt) => {
             let decrypted_string = String::from_utf8(pt.to_vec()).unwrap();
-            println!("解密结果（字符串）：{}", decrypted_string);
-            // 转交给消息处理
+            // println!("接受的消息{}", decrypted_string);
+
             match message_amin(decrypted_string) {
-                MessageResult::Success(data,update_sw) => {
+                MessageResult::Success(data, update_sw) => {
                     if update_sw {
-                        send_key(data, _server_handler);//送去加密消息
+                        // let decrypted_string = String::from_utf8(data.to_vec()).unwrap();
+                        // println!("客户端接受的消息{}", decrypted_string);
+                        send_key(data, _server_handler); //送去加密消息
                     }
                 }
                 MessageResult::UnknownType => {
@@ -111,8 +128,16 @@ fn msgdecrypt(msg_string: Vec<u8>, _server_handler: &mut ServerHandler) {
 fn send_key(byte_msg: Vec<u8>, _server_handler: &mut ServerHandler) {
     match encrypt(&byte_msg) {
         Ok(ct) => {
-            // 发送消息
-            to_send_chat_bds(_server_handler, ct.clone());
+            match decrypt(&ct) {
+                Ok(_) => {
+                    // 发送消息
+                    to_send_chat_bds(_server_handler, ct.clone());
+                }
+                Err(_) => {
+                    // 无法解密断开
+                    let _ = _server_handler.out.close(ws::CloseCode::Other(2));
+                }
+            }
         }
         Err(_) => {
             let _ = _server_handler.out.close(ws::CloseCode::Other(2));

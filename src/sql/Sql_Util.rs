@@ -3,7 +3,7 @@ use mysql::Pool;
 use rocket::yansi::Paint;
 
 use crate::{
-    shttp::http_player_config::{Player, Players},
+    shttp::http_player_config::{Players},
     var_config::{
         def_Config::{Config, DatabaseError, DefPlayer},
         yml_util::generate_random_key,
@@ -23,7 +23,7 @@ pub async fn create_table(config: Config) {
             Ok(_key) => {
                 key = _key;
             }
-            Err(_) => match getplayer_pw_name_sqlite3(&config.clone().def_money_name) {
+            Err(_) => match getmoney_key_sqlite3(config.clone().def_money_name) {
                 Ok(_key) => {
                     key = _key;
                 }
@@ -63,13 +63,12 @@ pub fn getplayer_pw(config: Config, name: String) -> Result<String, DatabaseErro
 }
 
 // 获取玩家数据-默认经济体
-pub fn getplayer_information(config: Config, name: String) -> Result<Player, DatabaseError> {
+pub fn getplayer_information(config: Config, name: String) -> Result<DefPlayer, DatabaseError> {
     if config.sqlmode == "mysql" {
         unimplemented!()
     } else {
         match getplayer_information_name_sqlite3(&name, &config.def_money_name) {
             Ok(player) => {
-                println!("获取到数据：{:?}", player);
                 Ok(player)
             }
             Err(err) => Err(DatabaseError::SQLite(err)), // 封装为DatabaseError::SQLite
@@ -82,7 +81,7 @@ pub fn getplayer_information_money(
     config: Config,
     name: String,
     def_money_name: String,
-) -> Result<Player, DatabaseError> {
+) -> Result<DefPlayer, DatabaseError> {
     if config.sqlmode == "mysql" {
         unimplemented!()
     } else {
@@ -105,7 +104,7 @@ pub fn deleteplayer_me_sql(config: Config, name: String) -> Result<(), DatabaseE
     }
 }
 
-// 获取所有玩家数据
+// 获取所有玩家数据——管理员版
 pub fn get_player_all(
     config: Config,
     economy_name: String,
@@ -114,6 +113,21 @@ pub fn get_player_all(
         unimplemented!()
     } else {
         match getplayer_information_all_sqlite3(economy_name) {
+            Ok(players) => Ok(players),
+            Err(_) => Ok(None),
+        }
+    }
+}
+
+// 获取所有玩家数据——乞丐版
+pub fn get_player_all_pl(
+    config: Config,
+    economy_name: String,
+) -> Result<Option<Players>, DatabaseError> {
+    if config.sqlmode == "mysql" {
+        unimplemented!()
+    } else {
+        match getplayer_information_all_sqlite3_pl(economy_name) {
             Ok(players) => Ok(players),
             Err(_) => Ok(None),
         }

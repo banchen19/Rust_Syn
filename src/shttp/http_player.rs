@@ -2,7 +2,10 @@ use std::ptr::null;
 
 use rocket::{catch, get, http::Status, post, Request, Responder};
 // 自定义状态码并返回数据
-use crate::{shttp::httpGetResponder_tools::HttpGetResponder, sql::Sql_Util::*, CONFIG_VAR}; // 添加引用
+use crate::{
+    shttp::httpGetResponder_tools::HttpGetResponder, sql::Sql_Util::*,
+    var_config::def_Config::DefPlayer, CONFIG_VAR,
+}; // 添加引用
 
 use serde_json::from_str;
 
@@ -27,25 +30,35 @@ pub fn addplayer(player_str: String) -> HttpGetResponder {
                 .clone();
             match getplayer_information(config.clone(), _addplayer.name) {
                 Ok(player) => {
-                    if player.player.pw == _addplayer.pw
-                        && player.player.level > config.addplayer
-                        && _addplayer.player.level < player.player.level
-                    {
-                        //管理员权限进行手动添加白名单
-                        add_player(config, _addplayer.player);
-                        null_200_http_get_responder()
-                    } else if !config.whitelist {
-                        //当白名单关闭的时候允许玩家自己注册
-                        add_player(config, _addplayer.player);
-                        null_403_http_get_responder()
-                    } else {
-                        null_403_http_get_responder()
+                    match serde_json::from_value::<DefPlayer>(_addplayer.player) {
+                        Ok(defplayer) => {
+                            match getplayer_information(config.clone(), defplayer.clone().name) {
+                                Ok(_player) => null_403_http_get_responder(),
+                                _ => {
+                                    if player.pw == _addplayer.pw
+                                        && player.level >= config.addplayer
+                                        && defplayer.level < player.level
+                                    {
+                                        //管理员权限进行手动添加白名单
+                                        add_player(config, defplayer);
+                                        null_200_http_get_responder()
+                                    } else if !config.whitelist {
+                                        //当白名单关闭的时候允许玩家自己注册
+                                        add_player(config, defplayer);
+                                        null_403_http_get_responder()
+                                    } else {
+                                        null_403_http_get_responder()
+                                    }
+                                }
+                            }
+                        }
+                        _ => null_403_http_get_responder(),
                     }
                 }
                 _ => null_403_http_get_responder(),
             }
         }
-        Err(_) => null_403_http_get_responder(),
+                Err(_) => null_403_http_get_responder(),
     }
 }
 
@@ -71,7 +84,7 @@ pub fn deleteplayer(
         .clone();
     match getplayer_information(config.clone(), name) {
         Ok(player) => {
-            if player.player.pw == pw && player.player.level > config.delplayer {
+            if player.pw == pw && player.level > config.delplayer {
                 //管理员权限进行手动删除白名单
                 null_200_http_get_responder()
             } else {
@@ -97,8 +110,8 @@ pub fn deleteplayer_me(name: Option<String>, pw: Option<String>) -> HttpGetRespo
         .clone();
     match getplayer_information(config.clone(), name.clone()) {
         Ok(player) => {
-            if player.player.pw == pw && config.delplme {
-                let _ = deleteplayer_me_sql(config, player.player.name);
+            if player.pw == pw && config.delplme {
+                let _ = deleteplayer_me_sql(config, player.name);
                 null_200_http_get_responder()
             } else {
                 null_403_http_get_responder()
@@ -131,8 +144,22 @@ pub fn getinformation_all(
 
     match getplayer_information(config.clone(), name.clone()) {
         Ok(player) => {
-            if player.player.pw == pw && player.player.level > config.getplall {
+            if player.pw == pw && player.level >= config.getplall {
                 match get_player_all(config, moeny_name) {
+                    Ok(Some(players)) => {
+                        let json_data = serde_json::to_value(&players).unwrap();
+                        let status = Status::Ok;
+                        let message = serde_json::to_string(&Response {
+                            code: 200,
+                            message: json_data,
+                        })
+                        .unwrap();
+                        HttpGetResponder((status, message))
+                    }
+                    _ => null_403_http_get_responder(),
+                }
+            } else if player.pw == pw && player.level < config.getplall {
+                match get_player_all_pl(config, moeny_name) {
                     Ok(Some(players)) => {
                         let json_data = serde_json::to_value(&players).unwrap();
                         let status = Status::Ok;
@@ -176,7 +203,7 @@ pub fn getpllogin(
 
     match getplayer_information_money(config, name, moeny_name) {
         Ok(player) => {
-            if player.player.pw == pw {
+            if player.pw == pw {
                 let json_data = serde_json::to_value(&player).unwrap();
                 let status = Status::Ok;
                 let message = serde_json::to_string(&Response {
@@ -195,10 +222,7 @@ pub fn getpllogin(
 
 // 验证密码
 #[get("/?<name>&<pw>")]
-pub fn login(
-    name: Option<String>,
-    pw: Option<String>,
-) -> HttpGetResponder {
+pub fn login(name: Option<String>, pw: Option<String>) -> HttpGetResponder {
     let name = name.unwrap_or_default();
     let pw = pw.unwrap_or_default();
     println!("name: {}", name);
@@ -213,9 +237,9 @@ pub fn login(
 
     match getplayer_information(config.clone(), name) {
         Ok(player) => {
-            println!("{}",player.player.pw);
-            println!("{}",pw);
-            if player.player.pw == pw {
+            println!("{}", player.pw);
+            println!("{}", pw);
+            if player.pw == pw {
                 null_200_http_get_responder()
             } else {
                 null_403_http_get_responder()

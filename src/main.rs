@@ -1,10 +1,9 @@
 use mysql::Pool;
 use rocket::catchers;
-//rocket框架配置
+//rocket框架
 use rocket::routes;
 use rocket::Config as OtherConfig;
 
-use colored::Colorize;
 use rocket::yansi;
 use scom::com::com_mg;
 use sql::Sql_Util::create_table;

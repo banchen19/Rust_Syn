@@ -1,8 +1,11 @@
 use rusqlite::{params, Connection, Error, Result};
 
 use crate::{
-    shttp::http_player_config::{Player, Players},
-    var_config::{def_Config::{DefPlayer, Config}, yml_util::generate_random_key},
+    shttp::http_player_config::{ Players},
+    var_config::{
+        def_Config::{Config, DefPlayer},
+        yml_util::generate_random_key,
+    },
 };
 
 // 创建表
@@ -94,7 +97,7 @@ pub fn insert_player_sqlite3(config: Config, player: DefPlayer) -> Result<()> {
             player.time,
         ],
     )?;
-    let _ = create_pl_bind_balance_sqlite3(config.clone(),player.name,config.def_money_name);
+    let _ = create_pl_bind_balance_sqlite3(config.clone(), player.name, config.def_money_name);
     Ok(())
 }
 
@@ -107,7 +110,7 @@ pub fn getplayer_pw_name_sqlite3(name: &str) -> Result<String, Error> {
 }
 
 // 根据name查询玩家数据
-pub fn getplayer_information_name_sqlite3(name: &str,economy_name: &str) -> Result<Player, Error> {
+pub fn getplayer_information_name_sqlite3(name: &str, economy_name: &str) -> Result<DefPlayer, Error> {
     let conn = Connection::open("sqlite3.db")?;
     let sql = "SELECT
     player.name,
@@ -122,23 +125,20 @@ FROM player
 LEFT JOIN economy ON player.name = economy.player_name
 WHERE player.name = ?1 AND economy_name=?2";
 
-    let player = conn.query_row(sql, &[name,economy_name], |row| {
-        Ok(Player {
-            money: row.get(2)?,
-            player: DefPlayer {
+    let player = conn.query_row(sql, &[name, economy_name], |row| {
+        Ok(DefPlayer {
                 name: row.get(0)?,
                 pw: row.get(1)?,
+                money: row.get(2)?,
                 level: row.get(3)?,
                 prefix: row.get(4)?,
                 online: row.get(5)?,
                 ip: row.get(6)?,
                 time: row.get(7)?,
-            },
         })
     });
     player
 }
-
 
 // 删除玩家数据
 pub fn delete_player_sqlite3_by_name(name: &str) -> Result<()> {
@@ -166,21 +166,19 @@ WHERE economy_name = ?1";
     let mut stmt = conn.prepare(sql)?;
 
     let player_iter = stmt.query_map([economy_name], |row| {
-        Ok(Player {
-            money: row.get(2)?,
-            player: DefPlayer {
+        Ok(DefPlayer {
                 name: row.get(0)?,
                 pw: row.get(1)?,
+                money: row.get(2)?,
                 level: row.get(3)?,
                 prefix: row.get(4)?,
                 online: row.get(5)?,
                 ip: row.get(6)?,
                 time: row.get(7)?,
-            },
         })
     })?;
 
-    let mut players: Vec<Player> = Vec::new();
+    let mut players: Vec<DefPlayer> = Vec::new();
 
     for player in player_iter {
         match player {
@@ -196,6 +194,53 @@ WHERE economy_name = ?1";
     }
 }
 
+// 一般玩家获取数据
+
+// 查询所有玩家数据
+pub fn getplayer_information_all_sqlite3_pl(economy_name: String) -> Result<Option<Players>> {
+    let conn = Connection::open("sqlite3.db")?;
+    let sql = "SELECT
+    player.name,
+    player.pw,
+    IFNULL(economy.money, 0) AS money,
+    player.level,
+    player.prefix,
+    player.online,
+    player.ip,
+    player.time
+FROM player
+LEFT JOIN economy ON player.name = economy.player_name 
+WHERE economy_name = ?1";
+    let mut stmt = conn.prepare(sql)?;
+
+    let player_iter = stmt.query_map([economy_name], |row| {
+        Ok(DefPlayer {
+                name: row.get(0)?,
+                pw: "*******".to_owned(),
+                money: row.get(2)?,
+                level: row.get(3)?,
+                prefix: row.get(4)?,
+                online: row.get(5)?,
+                ip: row.get(6)?,
+                time: row.get(7)?,
+        })
+    })?;
+
+    let mut players: Vec<DefPlayer> = Vec::new();
+
+    for player in player_iter {
+        match player {
+            Ok(player) => players.push(player),
+            Err(err) => return Err(err),
+        }
+    }
+
+    if !players.is_empty() {
+        Ok(Some(Players { players }))
+    } else {
+        Ok(None)
+    }
+}
 // 修改玩家权限
 pub fn update_player_level_name_sqlite3(name: String, level: i32) -> Result<(), Error> {
     let conn = Connection::open("sqlite3.db")?;
@@ -207,7 +252,6 @@ pub fn update_player_level_name_sqlite3(name: String, level: i32) -> Result<(), 
     )?;
     Ok(())
 }
-
 
 /*********************************************************************************************************************/
 // 添加经济体
@@ -231,12 +275,9 @@ pub fn add_money_name_sqlite3(moneysName: String) -> Result<String> {
 pub fn getmoney_key_sqlite3(name: String) -> Result<String, Error> {
     let conn = Connection::open("sqlite3.db")?;
     let sql = "SELECT key FROM economy_key WHERE economy_name = ?1";
-    let key: String = conn.query_row(sql, [name], |row| {
-        Ok(row.get(0)?)
-    })?;
+    let key: String = conn.query_row(sql, [name], |row| Ok(row.get(0)?))?;
     Ok(key)
 }
-
 
 // 删除经济体
 pub fn delete_money_name_sqlite3(moneysName: String, key: String) -> Result<()> {
@@ -267,7 +308,11 @@ pub fn delete_plmoney_name_sqlite3(player_name: String) -> Result<()> {
 }
 
 //为玩家添加经济体-初始化
-pub fn create_pl_bind_balance_sqlite3(config:Config,player_name: String, economy_name: String) -> Result<()> {
+pub fn create_pl_bind_balance_sqlite3(
+    config: Config,
+    player_name: String,
+    economy_name: String,
+) -> Result<()> {
     let conn = Connection::open("sqlite3.db")?;
     conn.execute(
         "INSERT OR IGNORE INTO economy (

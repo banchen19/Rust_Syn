@@ -45,10 +45,8 @@ pub fn encrypt(plain: &[u8])-> Result<Vec<u8>, Box<dyn std::error::Error>> {
         Err(_) => return Err(Box::new(DecryptionError)),
         };
 
-    // 截取加密结果，并转换为 Vec<u8>
-    let ct_result = ct[..plain.len()].to_vec();
-
-    Ok(ct_result)
+    // println!("加密明文二进制为{:?}",ct_result);
+    Ok(ct.to_vec())
 }
 
 #[derive(Debug)]
@@ -88,6 +86,6 @@ pub fn decrypt(cipher: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         Ok(pt) => pt,
         Err(_) => return Err(Box::new(DecryptionError)),
     };
-
+    // println!("解密后为：{:?}",pt);
     Ok(pt.to_vec())
 }
