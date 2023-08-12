@@ -1,11 +1,11 @@
 use colored::Colorize;
 use mysql::Pool;
 use rocket::yansi::Paint;
-
+use rusqlite::{params, Connection, Error, Result};
 use crate::{
     shttp::http_player_config::{Players},
     var_config::{
-        def_Config::{Config, DatabaseError, DefPlayer},
+        def_Config::{Config, DatabaseError, DefPlayer, EconomyInfo},
         yml_util::generate_random_key,
     },
 };
@@ -153,6 +153,30 @@ pub fn deletemoney(config: Config, moneysName: String, key: String) -> Result<()
     } else {
         match delete_money_name_sqlite3(moneysName, key) {
             Ok(()) => Ok(()),
+            Err(err) => Err(DatabaseError::SQLite(err)),
+        }
+    }
+}
+
+//查询所有经济体
+pub fn getmoney_name(config: Config)  -> Result<Vec<EconomyInfo>, DatabaseError>{
+    if config.sqlmode == "mysql" {
+        unimplemented!()
+    } else {
+        match getmoney_name_sqlite3() {
+            Ok(moneys) => Ok(moneys),
+            Err(err) => Err(DatabaseError::SQLite(err)),
+        }
+    }
+}
+
+//查询所有经济体——pl
+pub fn getmoney_name_pl(config: Config)  -> Result<Vec<EconomyInfo>, DatabaseError>{
+    if config.sqlmode == "mysql" {
+        unimplemented!()
+    } else {
+        match getmoney_name_sqlite3_pl() {
+            Ok(moneys) => Ok(moneys),
             Err(err) => Err(DatabaseError::SQLite(err)),
         }
     }

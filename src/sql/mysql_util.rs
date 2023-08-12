@@ -2,6 +2,8 @@
 use mysql::{params, prelude::*};
 use rand::Error;
 
+
+
 // 创建表
 pub fn create_mysql(pool: &mysql::Pool) -> mysql::Result<()> {
     let mut conn = pool.get_conn()?;

@@ -72,12 +72,25 @@ impl Handler for ServerHandler {
                     .duration_since(*time)
                     .unwrap_or(Duration::new(0, 0))
                     .as_secs()
-                    >= 600
+                    >= 60
                 {
-                    println!("超过10分钟，断开连接");
+                    println!("超过1分钟，断开连接");
                     let _ = sender.close(ws::CloseCode::Other(404));
                 }
                 break;
+            }else {
+                // 获取当前时间
+                let now = SystemTime::now();
+                // 检查是否超过10分钟
+                if now
+                    .duration_since(*time)
+                    .unwrap_or(Duration::new(0, 0))
+                    .as_secs()
+                    >= 60
+                {
+                    println!("超过1分钟，断开连接");
+                    let _ = sender.close(ws::CloseCode::Other(404));
+                }
             }
         }
         Ok(())

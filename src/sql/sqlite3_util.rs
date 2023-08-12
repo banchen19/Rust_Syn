@@ -1,12 +1,13 @@
 use rusqlite::{params, Connection, Error, Result};
 
 use crate::{
-    shttp::http_player_config::{ Players},
+    shttp::http_player_config::Players,
     var_config::{
-        def_Config::{Config, DefPlayer},
+        def_Config::{Config, DefPlayer, EconomyInfo},
         yml_util::generate_random_key,
     },
 };
+
 
 // 创建表
 pub fn create_sqlite3() -> Result<(), rusqlite::Error> {
@@ -110,7 +111,10 @@ pub fn getplayer_pw_name_sqlite3(name: &str) -> Result<String, Error> {
 }
 
 // 根据name查询玩家数据
-pub fn getplayer_information_name_sqlite3(name: &str, economy_name: &str) -> Result<DefPlayer, Error> {
+pub fn getplayer_information_name_sqlite3(
+    name: &str,
+    economy_name: &str,
+) -> Result<DefPlayer, Error> {
     let conn = Connection::open("sqlite3.db")?;
     let sql = "SELECT
     player.name,
@@ -127,14 +131,14 @@ WHERE player.name = ?1 AND economy_name=?2";
 
     let player = conn.query_row(sql, &[name, economy_name], |row| {
         Ok(DefPlayer {
-                name: row.get(0)?,
-                pw: row.get(1)?,
-                money: row.get(2)?,
-                level: row.get(3)?,
-                prefix: row.get(4)?,
-                online: row.get(5)?,
-                ip: row.get(6)?,
-                time: row.get(7)?,
+            name: row.get(0)?,
+            pw: row.get(1)?,
+            money: row.get(2)?,
+            level: row.get(3)?,
+            prefix: row.get(4)?,
+            online: row.get(5)?,
+            ip: row.get(6)?,
+            time: row.get(7)?,
         })
     });
     player
@@ -167,14 +171,14 @@ WHERE economy_name = ?1";
 
     let player_iter = stmt.query_map([economy_name], |row| {
         Ok(DefPlayer {
-                name: row.get(0)?,
-                pw: row.get(1)?,
-                money: row.get(2)?,
-                level: row.get(3)?,
-                prefix: row.get(4)?,
-                online: row.get(5)?,
-                ip: row.get(6)?,
-                time: row.get(7)?,
+            name: row.get(0)?,
+            pw: row.get(1)?,
+            money: row.get(2)?,
+            level: row.get(3)?,
+            prefix: row.get(4)?,
+            online: row.get(5)?,
+            ip: row.get(6)?,
+            time: row.get(7)?,
         })
     })?;
 
@@ -215,14 +219,14 @@ WHERE economy_name = ?1";
 
     let player_iter = stmt.query_map([economy_name], |row| {
         Ok(DefPlayer {
-                name: row.get(0)?,
-                pw: "*******".to_owned(),
-                money: row.get(2)?,
-                level: row.get(3)?,
-                prefix: row.get(4)?,
-                online: row.get(5)?,
-                ip: row.get(6)?,
-                time: row.get(7)?,
+            name: row.get(0)?,
+            pw: "*******".to_owned(),
+            money: row.get(2)?,
+            level: row.get(3)?,
+            prefix: row.get(4)?,
+            online: row.get(5)?,
+            ip: row.get(6)?,
+            time: row.get(7)?,
         })
     })?;
 
@@ -344,4 +348,60 @@ pub fn update_player_money_sqlite3(
         (newBalance, moneysName, player_name),
     )?;
     Ok(())
+}
+
+
+// 查询所有经济体
+pub fn getmoney_name_sqlite3() -> Result<Vec<EconomyInfo>, Error> {
+    let mut conn = Connection::open("sqlite3.db")?;
+
+    let mut stmt = conn.prepare(
+        "SELECT
+        economy_key.economy_name,
+        economy_key.key
+    FROM
+        economy_key",
+    )?;
+
+    let economy_iter = stmt.query_map((), |row| {
+        Ok(EconomyInfo {
+            economy_name: row.get(0)?,
+            key: row.get(1)?,
+        })
+    })?;
+
+    let mut economy_info_list: Vec<EconomyInfo> = Vec::new();
+    for economy_info in economy_iter {
+        economy_info_list.push(economy_info?);
+    }
+
+    Ok(economy_info_list)
+}
+
+
+// 查询所有经济体——pl
+pub fn getmoney_name_sqlite3_pl() -> Result<Vec<EconomyInfo>, Error> {
+    let mut conn = Connection::open("sqlite3.db")?;
+
+    let mut stmt = conn.prepare(
+        "SELECT
+        economy_key.economy_name,
+        economy_key.key
+    FROM
+        economy_key",
+    )?;
+
+    let economy_iter = stmt.query_map((), |row| {
+        Ok(EconomyInfo {
+            economy_name: row.get(0)?,
+            key: "********".to_owned(),
+        })
+    })?;
+
+    let mut economy_info_list: Vec<EconomyInfo> = Vec::new();
+    for economy_info in economy_iter {
+        economy_info_list.push(economy_info?);
+    }
+
+    Ok(economy_info_list)
 }

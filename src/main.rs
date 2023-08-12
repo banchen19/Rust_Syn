@@ -27,6 +27,7 @@ use std::{
 // http服务端
 mod shttp;
 use crate::shttp::http_money::delmoney;
+use crate::shttp::http_money::getmoney;
 use crate::shttp::http_money::getplmoney;
 use crate::shttp::http_player::*;
 
@@ -158,6 +159,7 @@ async fn start_http_server(config: Config) -> tokio::task::JoinHandle<()> {
             .mount("/getpllogin", routes![getpllogin])
             .mount("/delmoney", routes![delmoney])
             .mount("/getplmoney", routes![getplmoney])
+            .mount("/getmoney", routes![getmoney])
             .mount("/login", routes![login])
             .register("/", catchers![not_found])
             // .mount("/", routes![index])

@@ -1,7 +1,7 @@
 ---
 ws_port: 20102
 ws_keymode: AES-128
-server_name: kshdskahdksajdhah
+server_name: 服务端
 http_port: 20103
 sqlmode: sqlite3
 def_money_name: 贡献点
@@ -10,4 +10,5 @@ whitelist: true
 delplayer: 4
 addplayer: 4
 delplme: false
-getplall: 50
+getplall: 4
+getmoney: 4

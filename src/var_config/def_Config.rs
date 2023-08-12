@@ -29,6 +29,7 @@ pub struct Config{
     pub(crate) addplayer:i32,
     pub(crate) delplme:bool,
     pub(crate) getplall:i32,
+    pub(crate) getmoney:i32,
 
 }
 
@@ -72,6 +73,7 @@ pub fn inti_config() -> Result<Config, Box<dyn Error>> {
         getplall:4,
         ws_keymode: "AES-128".to_owned(),
         server_name:key,
+        getmoney:4,
     };
     match fs::metadata(&file_path) {
         Err(_) => {
@@ -93,4 +95,12 @@ pub fn inti_config() -> Result<Config, Box<dyn Error>> {
 pub fn read_yml_to_str(file_path: &str) -> Result<Config, Box<dyn Error>> {
     let config = yml_util::read_yml(file_path)?;
     Ok(config)
+}
+
+// 定义一个结构体来存储经济体信息
+
+#[derive(Debug, Serialize, Deserialize,Clone)]
+pub struct EconomyInfo {
+    pub(crate) economy_name: String,
+    pub(crate) key: String,
 }

@@ -1,13 +1,13 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::{
-    sql::Sql_Util::*,
+    sql::{Sql_Util::*, sqlite3_util::getmoney_name_sqlite3},
     var_config::{def_Config::DefPlayer, yml_util::generate_random_key},
     CONFIG_VAR,
 };
 
 use chrono::{Datelike, Local, Timelike, Utc};
-use rocket::yansi::Paint;
+use rocket::{yansi::Paint, futures::future::ok};
 
 pub fn com_mg(com_str: String) -> Result<(), String> {
     let mut params = com_str.trim().split_whitespace();
@@ -123,7 +123,11 @@ pub fn com_mg(com_str: String) -> Result<(), String> {
                     ));
                 }
             }
-
+            "test"=>
+            {
+                
+                Ok(())
+            }
             _ => {
                 return Err(String::from("无效的命令，请输入有效的命令。"));
             }
