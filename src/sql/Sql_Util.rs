@@ -3,7 +3,7 @@ use mysql::Pool;
 use rocket::yansi::Paint;
 use rusqlite::{params, Connection, Error, Result};
 use crate::{
-    shttp::http_player_config::{Players},
+    shttp::{http_player_config::{Players}, http_forum_config::{Forum, Forums}},
     var_config::{
         def_Config::{Config, DatabaseError, DefPlayer, EconomyInfo},
         yml_util::generate_random_key,
@@ -177,6 +177,29 @@ pub fn getmoney_name_pl(config: Config)  -> Result<Vec<EconomyInfo>, DatabaseErr
     } else {
         match getmoney_name_sqlite3_pl() {
             Ok(moneys) => Ok(moneys),
+            Err(err) => Err(DatabaseError::SQLite(err)),
+        }
+    }
+}
+
+// 添加帖子
+pub fn add_forum(config: Config, forum: Forum) {
+    if config.sqlmode == "mysql" {
+        unimplemented!()
+    } else {
+        insert_forum_sqlite3(forum);
+    }
+}
+
+//查询所有帖子
+pub fn getforumall(config: Config)  ->  Result<Option<Forums>, DatabaseError>{
+    if config.sqlmode == "mysql" {
+        unimplemented!()
+    } else {
+        match getforum_information_all_sqlite3() {
+            Ok(forums) => {
+
+            Ok(forums)},
             Err(err) => Err(DatabaseError::SQLite(err)),
         }
     }

@@ -15,3 +15,13 @@ pub struct AddPlayer
 pub struct Players {
     pub players: Vec<DefPlayer>,
 }
+
+//添加帖子
+#[derive(Debug, Serialize, Deserialize,Clone)]
+pub struct AddForum
+{
+    pub(crate) name:String,
+    pub(crate) pw:String,
+    pub(crate) forum:serde_json::Value,
+}
+

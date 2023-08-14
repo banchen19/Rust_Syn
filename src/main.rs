@@ -1,5 +1,8 @@
 use mysql::Pool;
 use rocket::catchers;
+use rocket::data::ByteUnit;
+use rocket::data::Limits;
+use rocket::data::ToByteUnit;
 //rocket框架
 use rocket::routes;
 use rocket::Config as OtherConfig;
@@ -17,7 +20,10 @@ use ws::listen;
 
 mod sql;
 
+use std::fs::File;
 use std::io;
+use std::io::Read;
+use std::io::Write;
 // 异步
 use std::{
     sync::{Arc, Mutex},
@@ -26,6 +32,8 @@ use std::{
 
 // http服务端
 mod shttp;
+use crate::shttp::http_forum::addforum;
+use crate::shttp::http_forum::getinformation_all_forum;
 use crate::shttp::http_money::delmoney;
 use crate::shttp::http_money::getmoney;
 use crate::shttp::http_money::getplmoney;
@@ -48,9 +56,30 @@ lazy_static! {
 use rand::Rng;
 // 异步启动
 #[tokio::main]
-async fn main() {
-    inti_play().await
-    
+async fn main() -> std::io::Result<()> {
+    let mp3_file_path = "take_me_hand.mp3"; // 替换为你的MP3文件路径
+    let target_file_path = "path_to_target_file.mp3"; // 替换为新的目标文件路径
+
+    let mut file = File::open(mp3_file_path)?;
+
+    let mut binary_data = Vec::new();
+    file.read_to_end(&mut binary_data)?;
+
+    // 创建或覆盖目标文件，并将二进制数据写入其中
+    let mut target_file = File::create(target_file_path)?;
+    target_file.write_all(&binary_data)?;
+
+    // 获取文件大小（以字节为单位）
+    let metadata = target_file.metadata()?;
+    let file_size = metadata.len();
+
+    // 转换文件大小为 MB
+    let file_size_mb: f64 = file_size as f64 / (1000.0 * 1000.0);
+
+    println!("File size: {:.2} MB", file_size_mb);
+    inti_play().await;
+
+    Ok(())
 }
 
 async fn inti_play() {
@@ -144,6 +173,7 @@ async fn start_ws_server(config: Config) -> tokio::task::JoinHandle<()> {
     ws_server_task
 }
 
+
 // 启动http端
 async fn start_http_server(config: Config) -> tokio::task::JoinHandle<()> {
     // 启动 HTTP 服务器
@@ -161,8 +191,12 @@ async fn start_http_server(config: Config) -> tokio::task::JoinHandle<()> {
             .mount("/getplmoney", routes![getplmoney])
             .mount("/getmoney", routes![getmoney])
             .mount("/login", routes![login])
+            .mount("/addforum", routes![addforum])
+            .mount(
+                "/getinformation_all_forum",
+                routes![getinformation_all_forum],
+            )
             .register("/", catchers![not_found])
-            // .mount("/", routes![index])
             .launch()
             .await;
     });

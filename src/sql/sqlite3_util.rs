@@ -1,13 +1,13 @@
+use chrono::{Local, Datelike, Timelike};
 use rusqlite::{params, Connection, Error, Result};
 
 use crate::{
-    shttp::http_player_config::Players,
+    shttp::{http_player_config::Players, http_forum_config::{Forum, Forumjson, Forums}},
     var_config::{
         def_Config::{Config, DefPlayer, EconomyInfo},
         yml_util::generate_random_key,
     },
 };
-
 
 // 创建表
 pub fn create_sqlite3() -> Result<(), rusqlite::Error> {
@@ -62,6 +62,19 @@ pub fn create_sqlite3() -> Result<(), rusqlite::Error> {
             ON DELETE CASCADE
         );
         "#,
+        (),
+    )?;
+    // 创建论坛表
+    conn.execute(
+        r#"CREATE TABLE IF NOT EXISTS `forum` (
+            id INTEGER PRIMARY KEY,
+                sender TEXT NOT NULL,
+                title TEXT NOT NULL,
+                text TEXT NOT NULL,
+                time TEXT NOT NULL,
+                UNIQUE ("sender")
+              );
+            "#,
         (),
     )?;
     Ok(())
@@ -350,7 +363,6 @@ pub fn update_player_money_sqlite3(
     Ok(())
 }
 
-
 // 查询所有经济体
 pub fn getmoney_name_sqlite3() -> Result<Vec<EconomyInfo>, Error> {
     let mut conn = Connection::open("sqlite3.db")?;
@@ -378,7 +390,6 @@ pub fn getmoney_name_sqlite3() -> Result<Vec<EconomyInfo>, Error> {
     Ok(economy_info_list)
 }
 
-
 // 查询所有经济体——pl
 pub fn getmoney_name_sqlite3_pl() -> Result<Vec<EconomyInfo>, Error> {
     let mut conn = Connection::open("sqlite3.db")?;
@@ -404,4 +415,80 @@ pub fn getmoney_name_sqlite3_pl() -> Result<Vec<EconomyInfo>, Error> {
     }
 
     Ok(economy_info_list)
+}
+
+
+// 添加论坛数据
+pub fn insert_forum_sqlite3(forum: Forum) -> Result<()> {
+    let current_time = Local::now();
+    let formatted_time = format!(
+        "{:04}-{:02}-{:02} {:02}:{:02}:{:02}",
+        current_time.year(),
+        current_time.month(),
+        current_time.day(),
+        current_time.hour(),
+        current_time.minute(),
+        current_time.second()
+    );
+    let conn = Connection::open("sqlite3.db")?;
+    conn.execute(
+        "INSERT INTO forum (
+            sender,
+            title,
+            text,
+            time
+        ) VALUES (
+            ?1,
+            ?2,
+            ?3,
+            ?4
+        )",
+        params![
+            forum.sender,
+            forum.title,
+            forum.text,
+            formatted_time
+        ],
+    )?;
+    Ok(())
+}
+
+
+// 查询所有论坛数据
+pub fn getforum_information_all_sqlite3() -> Result<Option<Forums>> {
+    let conn = Connection::open("sqlite3.db")?;
+    let sql = "SELECT
+	forum.sender, 
+	forum.title, 
+	forum.text, 
+	forum.time
+FROM
+	forum";
+
+    let mut stmt = conn.prepare(sql)?;
+
+    let player_iter = stmt.query_map((), |row| {
+        Ok(
+            Forumjson {
+            sender:row.get(0)?,
+            title:row.get(1)?,
+            text: row.get(2)?,
+            time: row.get(3)?,
+        })
+    })?;
+
+    let mut forums: Vec<Forumjson> = Vec::new();
+
+    for forum in player_iter {
+        match forum {
+            Ok(forum) => forums.push(forum),
+            Err(err) => return Err(err),
+        }
+    }
+
+    if !forums.is_empty() {
+        Ok(Some(Forums { forums }))
+    } else {
+        Ok(None)
+    }
 }
