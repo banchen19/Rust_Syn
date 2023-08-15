@@ -30,10 +30,12 @@ use std::{
     thread,
 };
 
-// http服务端
+// http服务端  路径接口
 mod shttp;
 use crate::shttp::http_forum::addforum;
+use crate::shttp::http_forum::addforum_comment;
 use crate::shttp::http_forum::getinformation_all_forum;
+use crate::shttp::http_forum::getinformation_all_forum_comment;
 use crate::shttp::http_money::delmoney;
 use crate::shttp::http_money::getmoney;
 use crate::shttp::http_money::getplmoney;
@@ -173,7 +175,6 @@ async fn start_ws_server(config: Config) -> tokio::task::JoinHandle<()> {
     ws_server_task
 }
 
-
 // 启动http端
 async fn start_http_server(config: Config) -> tokio::task::JoinHandle<()> {
     // 启动 HTTP 服务器
@@ -192,9 +193,9 @@ async fn start_http_server(config: Config) -> tokio::task::JoinHandle<()> {
             .mount("/getmoney", routes![getmoney])
             .mount("/login", routes![login])
             .mount("/addforum", routes![addforum])
-            .mount(
-                "/getinformation_all_forum",
-                routes![getinformation_all_forum],
+            .mount("/addforum_comment", routes![addforum_comment])
+            .mount("/getinformation_all_forum_comment", routes![getinformation_all_forum_comment])
+            .mount("/getinformation_all_forum",routes![getinformation_all_forum],
             )
             .register("/", catchers![not_found])
             .launch()

@@ -191,12 +191,35 @@ pub fn add_forum(config: Config, forum: Forum) {
     }
 }
 
+// 添加帖子评论
+pub fn add_forum_comment(config: Config, forum: Forum) {
+    if config.sqlmode == "mysql" {
+        unimplemented!()
+    } else {
+        insert_forum_comment_sqlite3(forum);
+    }
+}
+
 //查询所有帖子
 pub fn getforumall(config: Config)  ->  Result<Option<Forums>, DatabaseError>{
     if config.sqlmode == "mysql" {
         unimplemented!()
     } else {
         match getforum_information_all_sqlite3() {
+            Ok(forums) => {
+
+            Ok(forums)},
+            Err(err) => Err(DatabaseError::SQLite(err)),
+        }
+    }
+}
+
+//查询所有帖子
+pub fn getforumcommentall(config: Config,forum_title: String)  ->  Result<Option<Forums>, DatabaseError>{
+    if config.sqlmode == "mysql" {
+        unimplemented!()
+    } else {
+        match getforumcomment_information_all_sqlite3(forum_title) {
             Ok(forums) => {
 
             Ok(forums)},

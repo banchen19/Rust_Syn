@@ -11,15 +11,6 @@ pub struct Forum
 {
     pub(crate) sender:String,
     pub(crate) title:String,
-    pub(crate) text:String
-}
-
-// 标准返回帖子json结构
-#[derive(Debug, Serialize, Deserialize,Clone)]
-pub struct Forumjson
-{
-    pub(crate) sender:String,
-    pub(crate) title:String,
     pub(crate) text:String,
     pub(crate) time:String
 }
@@ -27,5 +18,5 @@ pub struct Forumjson
 // 所有帖子
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Forums {
-    pub(crate) forums: Vec<Forumjson>,
+    pub(crate) forums: Vec<Forum>,
 }

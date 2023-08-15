@@ -1,5 +1,25 @@
 # MC同步器项目文档
 
+### 作者说：
+问题一：
+
+```
+Data guard `String` failed: Custom { kind: UnexpectedEof, error: "data limit exceeded" }.
+```
+
+那你需要手动创建一个文件：Rocket.toml
+
+添加如下内容
+```config
+[default.limits]
+string = "1 MiB" 
+```
+内容说明： //接受数据大小限制、受到的字符串大小为1 mib大小
+> limits: bytes = 8KiB, data-form = 2MiB, file = 1MiB, form = 32KiB, json = 1MiB, msgpack = 1MiB, string = 1MiB
+   
+根据需求均可进行手动配置
+
+---
 ### `添加玩家初始化数据`
 请求者权限高于权限要求可
 - 请求方式：POST
